@@ -106,6 +106,8 @@ ui <- fluidPage(tabsetPanel(
                  )
                ),
                numericInput(inputId = "min_ratings", label = "Minimum Ratings", value = 0),
+               numericInput(inputId = "k", label = 'X min', value = 0),
+               numericInput(inputId = "l", label = "X max", value = 100000), 
                actionButton(inputId = "plot_scatter", label = "Plot Scatterplot")
              ),
              mainPanel(plotOutput(outputId = "scatterplot"))
@@ -183,6 +185,7 @@ onto the platform as of 2021."
     ggplot(filtered_data, aes_string(x = x_var, y = y_var)) +
       geom_point(size = 1) +
       labs(x = x_var, y = y_var, title = "Scatterplot") +
+      xlim(input$k, input$l) +
       theme_bw()
   })
 }
