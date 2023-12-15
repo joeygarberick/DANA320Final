@@ -37,7 +37,7 @@ ui <- fluidPage(tabsetPanel(
                    "Owned.Users"
                  )
                ),
-               sliderInput(inputId = "b", label = "Bins", min = 1, max = 40, value = 5),
+               sliderInput(inputId = "b", label = "Bins", min = 5, max = 100, value = 30),
                numericInput(inputId = "c", label = 'X min', value = 0),
                numericInput(inputId = "d", label = "X max", value = 100000)
              ),
@@ -48,12 +48,11 @@ ui <- fluidPage(tabsetPanel(
            sidebarLayout(
              sidebarPanel(
                radioButtons(inputId = "e", label = "X var", choices = c(
-                 "Mechanic",
-                 "Domain"
+                 "Mechanics",
+                 "Domains"
                )),
                radioButtons(inputId = "f", label = "Y var", choices = c(
-                 "Year.Published", 
-                 "Min.Players",
+                 "Year.Published",
                  "Max.Players",
                  "Play.Time",
                  "Min.Age",
@@ -62,9 +61,10 @@ ui <- fluidPage(tabsetPanel(
                  "Complexity.Average",
                  "Owned.Users"
                )),
-               textInput(inputId = "g", label = "1st domain or mechanic to plot"),
-               textInput(inputId = "h", label = "2st domain or mechanic to plot"),
-               textInput(inputId = "i", label = "3st domain or mechanic to plot")
+               textInput(inputId = "g", label = "1st domain or mechanic to plot", value = "Insert filter here"),
+               textInput(inputId = "h", label = "2st domain or mechanic to plot", value = "Insert filter here"),
+               textInput(inputId = "i", label = "3st domain or mechanic to plot", value = "Insert filter here"),
+               checkboxInput(inputId = "j", label = "Filter")
              ),
              mainPanel(
                plotOutput(outputId = "boxplot")
@@ -122,18 +122,33 @@ server <- function(input, output, session) {
   })
   
   output$hist <- renderPlot({
-    ggplot(game_data, aes_string(x = input$a)) + geom_histogram(binwidth = input$b) + xlim(input$c, input$d) + theme_bw()
+    ggplot(game_data, aes_string(x = input$a)) + geom_histogram(bins = input$b) + xlim(input$c, input$d) + theme_bw()
   })
   
   re <- reactive({
     val <- input$e
-    if (val == "Mechanic") {
-      
-      return(ggplot(mechanic_data, aes(x = mechanic_data$Mechanics)) + geom_boxplot(aes_string(y = input$f)) + theme_bw()) 
+    yval <- input$f
+    filter1 <- input$g
+    filter2 <- input$h
+    filter3 <- input$i
+    val2 <- input$j
+    if (val == "Mechanics") {
+      if (val2) {
+        data <- filter(mechanic_data, Mechanics == filter1 | Mechanics == filter2 | Mechanics == filter3)
+      } else {
+        data <- mechanic_data
+      }
+      ylim1 = boxplot.stats(data[[yval]])$stats[c(1,5)]
+      return(ggplot(data, aes(x = Mechanics)) + geom_boxplot(outlier.shape = NA, aes_string(y = yval), na.rm = TRUE) + coord_cartesian(ylim = ylim1) + theme_bw() + labs(x = "Mechanic")) 
       
     } else {
-      
-      return(ggplot(domain_data, aes(x = domain_data$Domains)) + geom_boxplot(aes_string(y = input$f)) + theme_bw())
+      if (val2) {
+        data <- filter(domain_data, Domains == filter1 | Domains == filter2 | Domains == filter3)
+      } else {
+        data <- domain_data
+      }
+      ylim1 = boxplot.stats(data[[yval]])$stats[c(1,5)]
+      return(ggplot(data, aes(x = Domains)) + geom_boxplot(outlier.shape = NA, aes_string(y = input$f), na.rm = TRUE) + coord_cartesian(ylim = ylim1) + theme_bw() + labs(y = "Domain"))
       
     }
   })
