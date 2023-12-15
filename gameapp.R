@@ -182,11 +182,24 @@ onto the platform as of 2021."
     
     filtered_data <- game_data[game_data$Users.Rated >= min_ratings, ]
     
-    ggplot(filtered_data, aes_string(x = x_var, y = y_var)) +
+    filtered_data_subset <- filtered_data[filtered_data[[x_var]] >= input$k &
+                                            filtered_data[[x_var]] <= input$l, ]
+    
+    scatter_plot <- ggplot(filtered_data_subset, aes_string(x = x_var, y = y_var)) +
       geom_point(size = 1) +
       labs(x = x_var, y = y_var, title = "Scatterplot") +
-      xlim(input$k, input$l) +
       theme_bw()
+    
+    regression_line <- lm(data = filtered_data_subset, formula = as.formula(paste(y_var, "~", x_var)))
+    equation <- paste("y =", format(regression_line$coefficients[1], digits = 4), "+", 
+                      format(regression_line$coefficients[2], digits = 4), "* x")
+    
+    scatter_plot <- scatter_plot +
+      geom_smooth(method = "lm", se = FALSE, color = "red") + 
+      annotate("text", x = min(filtered_data_subset[[x_var]]), y = max(filtered_data_subset[[y_var]]),
+               label = equation, hjust = 0, vjust = 1, color = "red") 
+    
+    print(scatter_plot)
   })
 }
 
