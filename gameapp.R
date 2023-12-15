@@ -11,10 +11,11 @@ mechanic_data <- game_data %>% separate_rows(Mechanics, sep = "\\, ")
 
 
 ui <- fluidPage(tabsetPanel(
-    tabPanel("Table", 
+  tabPanel("Table", 
              sidebarLayout(
                sidebarPanel(
-                 numericInput(inputId = "min_ratings_table", label = "Minimum Ratings", value = 0)
+                 numericInput(inputId = "min_ratings_table", label = "Minimum Ratings", value = 0),
+                 verbatimTextOutput("display_text")
                ),
                mainPanel(dataTableOutput(outputId = "data_filtered"))
              )
@@ -119,6 +120,21 @@ server <- function(input, output, session) {
     min_ratings_table <- input$min_ratings_table
     filtered_table <- game_data[game_data$Users.Rated >= min_ratings_table, ]
     filtered_table
+  })
+  
+  output$display_text <- renderText({
+    "The BoardGameGeek (BGG) 
+dataset is a comprehensive 
+collection of information 
+about board games available 
+on the BoardGameGeek website. 
+It contains various 
+attributes related to board 
+games, including numeric and 
+categorical data.The data 
+comes from the games that had 
+been released and cataloged 
+onto the platform as of 2021."
   })
   
   output$hist <- renderPlot({
